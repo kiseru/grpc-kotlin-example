@@ -3,16 +3,9 @@ package ru.grpc.simple.client.grpcclient
 import io.grpc.ManagedChannelBuilder
 import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
-import io.grpc.stub.StreamObserver
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
-import ru.grpc.simple.proto.CommonResponse
-import ru.grpc.simple.proto.LoginRequest
-import ru.grpc.simple.proto.LogoutRequest
-import ru.grpc.simple.proto.UserGrpc
+import ru.grpc.simple.proto.UserGrpcKt
+import ru.grpc.simple.proto.loginRequest
+import ru.grpc.simple.proto.logoutRequest
 
 suspend fun main() {
     val metadata = Metadata()
@@ -23,64 +16,20 @@ suspend fun main() {
         .intercept(interceptor)
         .build()
 
-    val stub = UserGrpc.newStub(managedChannel)
+    val stub = UserGrpcKt.UserCoroutineStub(managedChannel)
 
-    val loginRequest = LoginRequest.newBuilder()
-        .setUsername("userTestLogin")
-        .setPassword("qwe123")
-        .build()
-    login(stub, loginRequest)
-        .collect {
-            println("Login -> Response code: ${it.responseCode}, message: ${it.responseMessage}")
-            println("Login -> All fields: ${it.allFields}")
-        }
+    val loginRequest = loginRequest {
+        username = "userTestLogin"
+        password = "qwe123"
+    }
+    val loginResponse = stub.login(loginRequest)
+    println("Login -> Response code: ${loginResponse.responseCode}, message: ${loginResponse.responseMessage}")
+    println("Login -> All fields: ${loginResponse.allFields}")
 
-    val logoutRequest = LogoutRequest.newBuilder()
-        .setUsername("userTestLogin")
-        .build()
-    logout(stub, logoutRequest)
-        .collect {
-            println("Logout -> Response code: ${it.responseCode}, message: ${it.responseMessage}")
-            println("Logout -> All fields: ${it.allFields}")
-        }
+    val logoutRequest = logoutRequest {
+        username = "userTestLogin"
+    }
+    val logoutResponse = stub.logout(logoutRequest)
+    println("Logout -> Response code: ${logoutResponse.responseCode}, message: ${logoutResponse.responseMessage}")
+    println("Logout -> All fields: ${logoutResponse.allFields}")
 }
-
-suspend fun login(stub: UserGrpc.UserStub, loginRequest: LoginRequest): Flow<CommonResponse> =
-    callbackFlow {
-        stub.login(loginRequest, object : StreamObserver<CommonResponse> {
-
-            override fun onNext(value: CommonResponse) {
-                trySend(value)
-            }
-
-            override fun onError(t: Throwable) {
-                cancel(CancellationException("Error occurred", t))
-            }
-
-            override fun onCompleted() {
-                channel.close()
-            }
-        })
-
-        awaitClose()
-    }
-
-suspend fun logout(stub: UserGrpc.UserStub, logoutRequest: LogoutRequest): Flow<CommonResponse> =
-    callbackFlow {
-        stub.logout(logoutRequest, object : StreamObserver<CommonResponse> {
-
-            override fun onNext(value: CommonResponse) {
-                trySend(value)
-            }
-
-            override fun onError(t: Throwable) {
-                cancel(CancellationException("Error occurred", t))
-            }
-
-            override fun onCompleted() {
-                channel.close()
-            }
-        })
-
-        awaitClose()
-    }
