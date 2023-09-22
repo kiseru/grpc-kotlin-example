@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "ru.grpc.simple.proto";
+
+service User {
+  rpc login(LoginRequest) returns (CommonResponse);
+  rpc logout(LogoutRequest) returns (CommonResponse);
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message CommonResponse {
+  string responseMessage = 1;
+  int32 responseCode = 2;
+}
+
+message LogoutRequest {
+  string username = 1;
+}
