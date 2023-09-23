@@ -6,48 +6,39 @@ import ru.grpc.simple.proto.LoginRequest
 import ru.grpc.simple.proto.LogoutRequest
 import ru.grpc.simple.proto.UserServiceGrpcKt
 import ru.grpc.simple.proto.commonResponse
-import ru.grpc.simple.proto.util.DataUtil
-
-private const val ONLINE = "ONLINE"
-
-private const val OFFLINE = "OFFLINE"
+import ru.grpc.simple.server.grpcserver.repository.UserRepository
+import ru.grpc.simple.server.grpcserver.repository.UserStatus
 
 class UserService : UserServiceGrpcKt.UserServiceCoroutineImplBase() {
 
-    override suspend fun login(request: LoginRequest): CommonResponse {
-        if (request.password == DataUtil.getCorrectPassword()) {
+    override suspend fun login(request: LoginRequest): CommonResponse =
+        if (UserRepository.checkPassword(request.password)) {
             println("${request.username}'s login attempt has succeed")
-            DataUtil.getUsersMap()[request.username] = ONLINE
-
-            return commonResponse {
+            UserRepository.setOnline(request.username)
+            commonResponse {
                 responseCode = Status.Code.OK.value()
                 responseMessage = "Login SUCCESS"
             }
         } else {
             println("${request.username}'s login attempt has failed")
-            DataUtil.getUsersMap().remove(request.username)
-
-            return commonResponse {
+            UserRepository.remove(request.username)
+            commonResponse {
                 responseCode = Status.Code.UNAUTHENTICATED.value()
                 responseMessage = "Login FAILED"
             }
         }
-    }
 
-    override suspend fun logout(request: LogoutRequest): CommonResponse {
-        val usersMap = DataUtil.getUsersMap()
-        val status = usersMap[request.username]
-        return if (status == null || status == OFFLINE) {
+    override suspend fun logout(request: LogoutRequest): CommonResponse =
+        if (UserRepository.getUserStatus(request.username) != UserStatus.ONLINE) {
             commonResponse {
                 responseCode = Status.Code.INVALID_ARGUMENT.value()
                 responseMessage = "Logout FAILED, request is empty or user ${request.username} has been OFFLINE yet"
             }
         } else {
-            usersMap[request.username] = OFFLINE
+            UserRepository.setOffline(request.username)
             commonResponse {
                 responseCode = Status.Code.OK.value()
                 responseMessage = "Logout SUCCESS for user: ${request.username}"
             }
         }
-    }
 }
