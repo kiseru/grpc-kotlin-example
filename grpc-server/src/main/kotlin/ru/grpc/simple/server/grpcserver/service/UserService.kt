@@ -4,7 +4,7 @@ import io.grpc.Status
 import ru.grpc.simple.proto.CommonResponse
 import ru.grpc.simple.proto.LoginRequest
 import ru.grpc.simple.proto.LogoutRequest
-import ru.grpc.simple.proto.UserGrpcKt
+import ru.grpc.simple.proto.UserServiceGrpcKt
 import ru.grpc.simple.proto.commonResponse
 import ru.grpc.simple.proto.util.DataUtil
 
@@ -12,7 +12,7 @@ private const val ONLINE = "ONLINE"
 
 private const val OFFLINE = "OFFLINE"
 
-class UserService : UserGrpcKt.UserCoroutineImplBase() {
+class UserService : UserServiceGrpcKt.UserServiceCoroutineImplBase() {
 
     override suspend fun login(request: LoginRequest): CommonResponse {
         if (request.password == DataUtil.getCorrectPassword()) {

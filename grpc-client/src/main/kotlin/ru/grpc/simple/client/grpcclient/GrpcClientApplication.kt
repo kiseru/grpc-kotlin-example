@@ -3,7 +3,7 @@ package ru.grpc.simple.client.grpcclient
 import io.grpc.ManagedChannelBuilder
 import io.grpc.Metadata
 import io.grpc.stub.MetadataUtils
-import ru.grpc.simple.proto.UserGrpcKt
+import ru.grpc.simple.proto.UserServiceGrpcKt
 import ru.grpc.simple.proto.loginRequest
 import ru.grpc.simple.proto.logoutRequest
 
@@ -16,7 +16,7 @@ suspend fun main() {
         .intercept(interceptor)
         .build()
 
-    val stub = UserGrpcKt.UserCoroutineStub(managedChannel)
+    val stub = UserServiceGrpcKt.UserServiceCoroutineStub(managedChannel)
 
     val loginRequest = loginRequest {
         username = "userTestLogin"

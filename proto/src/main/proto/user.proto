@@ -3,7 +3,7 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "ru.grpc.simple.proto";
 
-service User {
+service UserService {
   rpc login(LoginRequest) returns (CommonResponse);
   rpc logout(LogoutRequest) returns (CommonResponse);
 }
