@@ -1,3 +1,3 @@
-rootProject.name = "grpc-simple-example"
+rootProject.name = "grpc-kotlin-example"
 
 include("grpc-client", "grpc-server", "proto")
